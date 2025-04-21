@@ -1,5 +1,7 @@
 import hashlib
 import io
+import os
+import shutil
 import struct
 import time
 from pathlib import Path
@@ -15,13 +17,13 @@ class FuCache:
     EXPIRATION_SEC: int = 0
 
     @classmethod
-    def init(cls, name: str, use_hash_filename: bool = True, expired_sec: int = 0):
+    def init(cls, name: str, use_hash_filename: bool = True, expiration_sec: int = 0):
         if not name:
             raise ValueError("Cache name cannot be empty")
 
         cls.APP_CACHE_DIR = name
         cls.USE_HASH_FILENAME = use_hash_filename
-        cls.EXPIRATION_SEC = expired_sec
+        cls.EXPIRATION_SEC = expiration_sec
 
     @classmethod
     def get_app_cache_dir(cls) -> Path:
@@ -48,8 +50,11 @@ class FuCache:
             return None
 
         try:
-            with p.open("rb") as f:
-                return f.read()
+            head, body = CacheHeader.parse_from_file(p)
+            if head.is_expired():
+                os.remove(p)
+                return None
+            return body
         except Exception as e:
             raise exceptions.CacheLoadError(name) from e
 
@@ -65,6 +70,22 @@ class FuCache:
                 f.write(content)
         except Exception as e:
             raise exceptions.CacheSaveError(name) from e
+
+    @classmethod
+    def clean_all(cls):
+        p = cls.get_app_cache_dir()
+        shutil.rmtree(p, ignore_errors=True)
+
+    @classmethod
+    def clean_expired(cls):
+        p = cls.get_app_cache_dir()
+        for path in p.iterdir():
+            try:
+                header, _ = CacheHeader.parse_from_file(path)
+                if header.is_expired():
+                    os.remove(path)
+            except exceptions.CacheError:
+                os.remove(path)
 
 
 _HEADER_VERSION = 1
