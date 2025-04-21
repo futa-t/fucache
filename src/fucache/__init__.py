@@ -166,8 +166,8 @@ class FuCache:
     def clean_all(cls):
         """Clean All cachefiles."""
         p = cls.get_app_cache_dir()
-        shutil.rmtree(p, ignore_errors=True)
-        p.rmdir()
+        if p.is_dir():
+            shutil.rmtree(p, ignore_errors=True)
 
     @classmethod
     def clean_expired(cls):
