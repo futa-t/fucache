@@ -82,7 +82,7 @@ class FuCache:
         return p
 
     @classmethod
-    def create_cache_filename(cls, filename: str) -> str:
+    def create_cache_filename(cls, filename: str, use_hash_filename: bool = None) -> str:
         """Create cache filename.
 
         If `USE_HASH_FILENAME` is set, return md5hashed name.
@@ -98,7 +98,10 @@ class FuCache:
             str: filename
         """
 
-        if not cls.USE_HASH_FILENAME:
+        if use_hash_filename is None:
+            use_hash_filename = cls.USE_HASH_FILENAME
+
+        if not use_hash_filename:
             return filename
         try:
             return hashlib.md5(filename.encode()).hexdigest()
@@ -106,12 +109,13 @@ class FuCache:
             raise exceptions.CacheError(f"failed to create hash {filename}") from e
 
     @classmethod
-    def load_cache(cls, filename: str) -> bytes | None:
+    def load_cache(cls, filename: str, use_hash_filename: bool = True) -> bytes | None:
         """Load cahce from app cache dir.
 
 
         Args:
             name (str): filename.
+            use_hash_filename (bool): precedence over the init setting.
 
         Raises:
             exceptions.CacheLoadError: Cache Load failed.
@@ -119,7 +123,7 @@ class FuCache:
         Returns:
             bytes | None: Cache data bytes. None if Expired or not exists.
         """
-        cache_name = cls.create_cache_filename(filename)
+        cache_name = cls.create_cache_filename(filename, use_hash_filename)
 
         p = cls.get_app_cache_dir() / cache_name
 
@@ -139,18 +143,19 @@ class FuCache:
             raise exceptions.CacheLoadError(filename) from e
 
     @classmethod
-    def save_cache(cls, filename: str, data: bytes, expiration_sec: int = None):
+    def save_cache(cls, filename: str, data: bytes, expiration_sec: int = None, use_hash_filename: bool = True):
         """Save cache for app cache dir.
 
         Args:
             name (str): filename.
             data (bytes): bytes to save.
             expiration_sec (int, optional): expiration second. precedence over the init setting.
+            use_hash_filename (bool): precedence over the init setting.
 
         Raises:
             exceptions.CacheSaveError: Save failed.
         """
-        cache_name = cls.create_cache_filename(filename)
+        cache_name = cls.create_cache_filename(filename, use_hash_filename)
 
         p = cls.get_app_cache_dir() / cache_name
 
