@@ -96,7 +96,10 @@ class CacheHeader:
         return header + data
 
     @classmethod
-    def parse(cls, data: bytes) -> tuple[Self, bytes]:
+    def parse_from_bytes(cls, data: bytes) -> tuple[Self, bytes]:
+        if len(data) < _HEADER_SIZE:
+            raise exceptions.CacheHeaderError()
+
         with io.BytesIO(data) as bf:
             head_byte = bf.read(_HEADER_SIZE)
             header = cls(*struct.unpack(_HEADER_FORMAT, head_byte))
@@ -108,6 +111,11 @@ class CacheHeader:
                 raise exceptions.CacheSizeError(header.data_length, len(body))
 
             return header, body
+
+    @classmethod
+    def parse_from_file(cls, file_name: Path | str) -> tuple[Self, bytes]:
+        with open(file_name, "rb") as f:
+            return cls.parse_from_bytes(f.read())
 
     def __repr__(self) -> str:
         return f"CacheHeader(version={self.version}, created_at={self.created_at}, expiration_at={self.expiration_at}, data_length={self.data_length})"

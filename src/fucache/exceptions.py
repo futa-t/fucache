@@ -23,3 +23,8 @@ class CacheVersionError(CacheError):
 class CacheSizeError(CacheError):
     def __init__(self, expected_length: int, actual_length: int):
         super().__init__(f"expected {expected_length} bytes, but {actual_length} is given")
+
+
+class CacheHeaderError(CacheError):
+    def __init__(self):
+        super().__init__("cache header is invalid")
