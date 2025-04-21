@@ -1,13 +1,15 @@
 [project]
 name = "fucache"
 version = "0.1.0"
-description = "Add your description here"
+description = "simple cache lib"
 readme = "README.md"
 authors = [
     { name = "futa-t", email = "143526236+futa-t@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
 dependencies = []
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 
 [build-system]
 requires = ["hatchling"]

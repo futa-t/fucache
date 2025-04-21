@@ -66,8 +66,7 @@ class FuCache:
 
         try:
             content = CacheHeader.add_header(data, cls.EXPIRATION_SEC)
-            with p.open("wb") as f:
-                f.write(content)
+            p.write_bytes(content)
         except Exception as e:
             raise exceptions.CacheSaveError(name) from e
 
