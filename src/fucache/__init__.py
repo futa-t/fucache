@@ -45,9 +45,9 @@ class FuCache:
 
         If not call this method, will be used default config.
         Default config:
-        - cache_directory : `~/.cache/fucache`
-        - hash filename   : plain text (e.g. `file.txt` -> `~/.cache/fucache/file.txt`)
-        - expriration_sec : 0
+        - cache_directory   : `~/.cache/fucache`
+        - hash_filename : md5 hash filename (e.g. `file.txt` -> `3d8e577bddb17db339eae0b3d9bcf180`)
+        - expriration_sec   : 0
 
         Args:
             name (str): Appname. Use CacheDirectory Name.
@@ -139,12 +139,13 @@ class FuCache:
             raise exceptions.CacheLoadError(filename) from e
 
     @classmethod
-    def save_cache(cls, filename: str, data: bytes):
+    def save_cache(cls, filename: str, data: bytes, expiration_sec: int = None):
         """Save cache for app cache dir.
 
         Args:
             name (str): filename.
             data (bytes): bytes to save.
+            expiration_sec (int, optional): expiration second. precedence over the init setting.
 
         Raises:
             exceptions.CacheSaveError: Save failed.
@@ -154,7 +155,9 @@ class FuCache:
         p = cls.get_app_cache_dir() / cache_name
 
         try:
-            content = CacheHeader.add_header(data, cls.EXPIRATION_SEC)
+            if expiration_sec is None:
+                expiration_sec = cls.EXPIRATION_SEC
+            content = CacheHeader.add_header(data, expiration_sec)
             p.write_bytes(content)
         except Exception as e:
             raise exceptions.CacheSaveError(filename) from e
